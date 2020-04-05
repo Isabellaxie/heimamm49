@@ -2,6 +2,10 @@
 import Vue from 'vue'
 //子组件
 import login from '@/view/login/login.vue'
+
+
+
+
 // 导入 vue-router
 import VueRouter from 'vue-router'
 //注册 vue-router
