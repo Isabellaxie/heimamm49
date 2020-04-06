@@ -1,14 +1,11 @@
 <template>
-  <!-- 实际工作中,一般最外层 类名,为 组件名, 方便 -->
-  <div>
-    <router-view></router-view>
-  </div>
+  <router-view></router-view>
 </template>
 
 <script>
 export default {};
 </script>
 
-<style lang="less">
+<style>
 @import url(~@/style/base.css);
 </style>
