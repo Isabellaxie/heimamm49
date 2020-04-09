@@ -9,6 +9,7 @@
       </div>
       <!-- form表单 -->
       <el-form :model="form" :rules="rules" ref="form">
+        <!-- 测试提交5 -->
         <el-form-item prop="phone">
           <el-input
             v-model="form.phone"
