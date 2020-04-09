@@ -56,9 +56,14 @@
           <el-button type="primary" class="btn" @click="loginClick"
             >登录</el-button
           >
-          <el-button type="primary" class="btn">注册</el-button>
+          <!-- 一点击 注册,就显 对话框 ???? -->
+          <el-button type="primary" class="btn" @click="registerClick"
+            >注册</el-button
+          >
         </el-form-item>
       </el-form>
+      <!--也写在表单里吗? 我觉得不写 -->
+      <register ref="register"></register>
     </div>
 
     <!-- <el-row>
@@ -73,7 +78,13 @@
 </template>
 
 <script>
+//"@/login/register.vue" 是与login同级
+import register from "./register.vue";
 export default {
+  //兄弟 组件间传值, 现在没有经过,路由, 头回用到,兄弟传值
+  components: {
+    register,
+  },
   // 方便查找, 在后台vue 里
   name: "login",
   data() {
@@ -103,6 +114,10 @@ export default {
       },
     };
   },
+  // mounted() {
+  //   alert(process.env.VUE_APP_URL);
+  // },
+
   methods: {
     loginClick() {
       this.$refs.form.validate((result) => {
@@ -114,6 +129,9 @@ export default {
           this.$message.error("温馨提示:登录不成功,请重新登录");
         }
       });
+    },
+    registerClick() {
+      this.$refs.register.dialogFormVisible = true;
     },
   },
 };
