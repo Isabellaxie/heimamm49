@@ -5,6 +5,7 @@
     width="600px"
     :show-close="true"
   >
+    <div slot="title" class="title">用户注册</div>
     <!-- 先写上,true, 回头再去掉,不然关不掉 -->
     <!-- 
       el-dialog
@@ -14,7 +15,7 @@
       show-close	是否显示关闭按钮
     -->
 
-    <!-- 上传东西
+    <!-- 上传头像
             el-upload
            1:上传地址  action
            2：参数     name="值" 该值就是上传文件的参数(在后台注册接口找)
@@ -29,7 +30,6 @@
         -->
 
     <el-form :model="form" label-width="70px" :rules="rules" ref="form">
-      <div slot="title" class="title">用户注册</div>
       <el-form-item label="头像" prop="avatar">
         <!-- 无法双向绑定值,所 只能用, 部分校证法 -->
         <el-upload
@@ -80,14 +80,18 @@
           </el-col>
           <el-col :span="6" :offset="1">
             <!-- 这是个buton不是input -->
-            <el-button @click="getRcode">获取用户验证码</el-button>
+            <el-button @click="getRcode" :disabled="totalTime != 20"
+              >获取用户验证码
+              <span v-if="totalTime != 20">{{ totalTime }}</span>
+            </el-button>
           </el-col>
         </el-row>
       </el-form-item>
     </el-form>
     <!-- 在dialog只有title footer 可以重定 设slot -->
     <div slot="footer" class="btnCenter">
-      <el-button>取消</el-button>
+      <!-- 直接写了结果进去, 没有再写一个 新的取消事件. -->
+      <el-button @click="dialogFormVisible = false">取消</el-button>
       <el-button type="primary" @click="submitClick">确定</el-button>
       <!--  -->
     </div>
@@ -95,7 +99,8 @@
 </template>
 <script>
 // import axios from "axios";
-import getPhoneCode from "@/api/register.js";
+//import getPhoneCode from "@/api/register.js";
+import { getPhoneCode, register } from "@/api/register.js";
 export default {
   name: "register",
   data() {
@@ -104,6 +109,7 @@ export default {
       imageUrl: "",
       baseUrl: process.env.VUE_APP_URL,
       codeUrl: process.env.VUE_APP_URL + "/captcha?type=sendsms",
+      totalTime: 20,
 
       form: {
         //保存头像地址 ,这里加了form 是后面验证 参数之一????
@@ -176,6 +182,16 @@ export default {
       // :action="baseUrl + '/uploads'" 要绑定,不然就是字符串
     };
   },
+  watch: {
+    dialogFormVisible(newVal) {
+      if (newVal == false) {
+        //表单清空
+        this.$refs.form.resetFields();
+        //图片没双向绑,另清空
+        this.imageUrl = "";
+      }
+    },
+  },
 
   methods: {
     //上传前处理
@@ -211,10 +227,16 @@ export default {
     submitClick() {
       this.$refs.form.validate((valid) => {
         if (valid) {
-          this.$message.success("恭喜你注册成功");
-        } else {
-          this.$message.error("请信息填写完整");
-          return false;
+          register(this.form).then((res) => {
+            console.log("注册返回信息", res);
+            // 如果 api封装的好，这个判断 是可以省掉的，如果在响应拦截里面把所有处理都写好了，这里只要能收到数据就是200的数据
+            //200这个就可以省掉了     //
+
+            // 返回undefined???
+
+            this.$message.success("恭喜你注册成功");
+            this.dialogFormVisible = false;
+          });
         }
       });
     },
@@ -254,13 +276,26 @@ export default {
         //   //  得到的信息是数值  得转为字符串  加个 空字符中 ""  就可以转化了
         //   this.$message.success(res.data.data.captcha + "");
         // });
-        getPhoneCode({ code: this.form.code, phone: this.form.phone }).then(
-          (res) => {
-            console.log(res);
-            //  得到的信息是数值  得转为字符串  加个 空字符中 ""  就可以转化了
-            this.$message.success(res.data.data.captcha + "");
+
+        //先自减1秒, 会有1秒的延迟
+        this.totalTime--;
+        let timeId = setInterval(() => {
+          this.totalTime--;
+          if (this.totalTime <= 0) {
+            //不让点击
+            clearInterval(timeId);
+            //重新赋值
+            this.totalTime = 20;
           }
-        );
+        }, 1000);
+
+        getPhoneCode({
+          code: this.form.code,
+          phone: this.form.phone,
+        }).then((res) => {
+          window.console.log(res);
+          this.$message.success(res.data.captcha + "");
+        });
       }
     },
   },
@@ -275,14 +310,12 @@ export default {
 //就再加一个style,
 // 看下面 */
 .register {
-  .el-dialog__header {
-    .title {
-      height: 53px;
-      background: rgba(3, 192, 249, 1);
-      color: #fff;
-      text-align: center;
-      line-height: 53px;
-    }
+  .title {
+    height: 53px;
+    background: rgba(3, 192, 249, 1);
+    color: #fff;
+    text-align: center;
+    line-height: 53px;
   }
   .imgCode {
     height: 40px;
@@ -298,8 +331,10 @@ export default {
 // 下面是 上传框的样式,如果不能, 再加一个style
 //加了下面两个
 .register {
-  .title {
-    padding: 0;
+  .el-dialog_header {
+    .title {
+      padding: 0;
+    }
   }
 }
 .avatar-uploader {
