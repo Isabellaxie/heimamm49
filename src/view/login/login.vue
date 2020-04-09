@@ -42,7 +42,7 @@
             </el-col>
           </el-row>
         </el-form-item>
-        <el-form-item prop="ischecked">
+        <el-form-item class="isCheck" prop="ischecked">
           <el-checkbox v-model="form.ischecked">
             <span class="colorWord">我已阅读并同意</span>
             <el-link type="primary" disabled>用户协议</el-link>
