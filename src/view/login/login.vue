@@ -32,7 +32,7 @@
 
         <el-form-item prop="code">
           <el-row class="passEvent">
-            <el-col :span="16" class="box">
+            <el-col :span="17" class="box">
               <el-input
                 class="code"
                 v-model="form.code"
@@ -40,13 +40,13 @@
                 prefix-icon="el-icon-key"
               ></el-input>
             </el-col>
-            <el-col :span="8" class="codeImg"
-              ><img src="../../assets/img/key.jpg" alt="" />
+            <el-col :span="6" :offset="1" class="codeImg"
+              ><img :src="codeImgUrl" alt="" @click="clickCode" />
             </el-col>
           </el-row>
         </el-form-item>
-        <el-form-item class="isCheck" prop="ischecked">
-          <el-checkbox v-model="form.ischecked">
+        <el-form-item prop="ischecked">
+          <el-checkbox v-model="form.ischecked" ref="ischecked">
             <span class="colorWord">我已阅读并同意</span>
             <el-link type="primary" disabled>用户协议</el-link>
             <span class="colorWord">和</span>
@@ -82,9 +82,14 @@
 
 <script>
 //"@/login/register.vue" 是与login同级
+
+// 登录页,肯定是有, 保存 token,所以,得传进来方法
 import register from "./register.vue";
+import { toLogin } from "@/api/login.js";
+import { saveToken } from "@/utils/token.js";
 export default {
   //兄弟 组件间传值, 现在没有经过,路由, 头回用到,兄弟传值
+
   components: {
     register,
   },
@@ -92,6 +97,7 @@ export default {
   name: "login",
   data() {
     return {
+      codeImgUrl: process.env.VUE_APP_URL + "/captcha?type=login",
       form: {
         phone: "",
         passWord: "",
@@ -100,11 +106,23 @@ export default {
         ischecked: false,
       },
       rules: {
-        phone: [{ required: true, message: "请输入手机号", trigger: "change" }],
+        phone: [
+          { required: true, message: "请输入手机号", trigger: "change" },
+          {
+            validator: (rule, value, callback) => {
+              let _reg = /^(0|86|17951)?(13[0-9]|15[012356789]|166|17[3678]|18[0-9]|14[57])[0-9]{8}$/;
+              if (_reg.test(value)) {
+                callback();
+              } else {
+                callback("请输入11位数的手机号码");
+              }
+            },
+          },
+        ],
 
         password: [
           { required: true, message: "请输入密码", trigger: "change" },
-          { min: 3, max: 5, message: "长度3-5个字符", trigger: "change" },
+          { min: 3, max: 10, message: "长度3-10个字符", trigger: "change" },
         ],
 
         code: [
@@ -113,6 +131,16 @@ export default {
         ],
         ischecked: [
           { required: true, message: "请先阅读,并打勾", trigger: "change" },
+          // 用的是部分校验法 validateField 不对,也是用 自定义,校验
+          {
+            validator: (rule, value, callback) => {
+              if (value == true) {
+                callback();
+              } else {
+                callback("请勾选协议");
+              }
+            },
+          },
         ],
       },
     };
@@ -124,17 +152,34 @@ export default {
   methods: {
     loginClick() {
       this.$refs.form.validate((result) => {
+        if (result == true) {
+          //这个为真时, 就登录呀 发请求
+          // 因为有了 request.js 已经把200以外的,所以情况处理了, 现在只有成功200 才会边来这边, 加了,请求头,data都得去掉一个
+          toLogin(this.form).then((res) => {
+            this.$message.success("恭喜你,登录成功");
+            window.console.log("登录信息", res);
+
+            // 这里就是最先可以保存 token的地方
+            // 保存token
+            saveToken(res.data.token);
+          });
+        }
         // result 这个是可以别的
         // 对这个ture 有个同化?  老师与我们写的不一样
-        if (result) {
-          this.$message.success("恭喜你,登录成功");
-        } else {
-          this.$message.error("温馨提示:登录不成功,请重新登录");
-        }
+        // if (result) {
+        //   this.$message.success("恭喜你,登录成功");
+        // } else {
+        //   this.$message.error("温馨提示:登录不成功,请重新登录");
+        // }
       });
     },
     registerClick() {
       this.$refs.register.dialogFormVisible = true;
+    },
+    clickCode() {
+      // 点击后,地址加随机数,/ 现在时间
+      this.codeImgUrl =
+        process.env.VUE_APP_URL + "/captcha?type=login&tt=" + Date.now();
     },
   },
 };
@@ -191,6 +236,7 @@ export default {
     .codeImg img {
       width: 100%;
       height: 40px;
+      border: 1px dashed red;
     }
     .colorWord {
       color: #666;
