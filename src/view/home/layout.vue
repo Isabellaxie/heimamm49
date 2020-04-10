@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <template>
   <div>
     我是Home
@@ -10,3 +11,9 @@ export default {};
 </script>
 
 <style></style>
+=======
+<<template>
+  <div>我是home</div>
+  <router-view></router-view>
+</template>
+>>>>>>> login

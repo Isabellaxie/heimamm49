@@ -2,7 +2,12 @@ import VueRouter from 'vue-router'
 import Vue from 'vue'
 
 import login from '../view/login/login.vue'
+<<<<<<< HEAD
 import layout from '../view/home/layout.vue'
+=======
+
+
+>>>>>>> login
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
@@ -20,6 +25,7 @@ const router = new VueRouter({
             component: login
         },
 
+<<<<<<< HEAD
         {
             path: "/home",
             component: layout
@@ -28,7 +34,13 @@ const router = new VueRouter({
         // {
         //     path: "/heima_subject",
         //     component: heima_subject
+=======
+        // {
+        //     path: "/home",
+        //     component: layout
+>>>>>>> login
         // },
+
     ]
 })
 
